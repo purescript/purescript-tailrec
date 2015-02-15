@@ -22,6 +22,15 @@ import Control.Monad.State.Class
 
 import Control.Monad.Rec.Class 
 
+-- | Compute the nth triangle number
+triangle :: Number -> Eff (trace :: Trace) Number
+triangle = tailRecM2 f 0
+  where
+  f acc 0 = return (Right acc)
+  f acc n = do
+    trace $ "Accumulator: " <> show acc
+    return (Left { a: acc + n, b: n - 1 })
+
 loop :: Number -> Eff (trace :: Trace) Unit
 loop n = tailRecM go n
   where
@@ -51,14 +60,14 @@ loopState :: Number -> StateT Number (Eff (trace :: Trace)) Unit
 loopState n = tailRecM go n
   where
   go 0 = do
-    n <- get
     lift $ trace "Done!"
-    return unit
+    return (Right unit)
   go n = do
     modify \s -> s + n 
     return (Left (n - 1))
   
 main = do
+  triangle 10
   loop 1000000
   result1 <- runWriterT $ loopWriter 1000000
   print result1

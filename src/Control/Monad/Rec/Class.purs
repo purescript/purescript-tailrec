@@ -2,6 +2,8 @@ module Control.Monad.Rec.Class
   ( MonadRec
   , tailRec
   , tailRecM
+  , tailRecM2
+  , tailRecM3
   ) where
 
 import Data.Maybe
@@ -20,6 +22,12 @@ import Control.Monad.Writer.Trans
 
 class (Monad m) <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
+
+tailRecM2 :: forall m a b c. (MonadRec m) => (a -> b -> m (Either { a :: a, b :: b } c)) -> a -> b -> m c
+tailRecM2 f a b = tailRecM (\o -> f o.a o.b) { a: a, b: b }
+
+tailRecM3 :: forall m a b c d. (MonadRec m) => (a -> b -> c -> m (Either { a :: a, b :: b, c :: c } d)) -> a -> b -> c -> m d
+tailRecM3 f a b c = tailRecM (\o -> f o.a o.b o.c) { a: a, b: b, c: c }
 
 tailRec :: forall a b. (a -> Either a b) -> a -> b
 tailRec f a = go (f a)

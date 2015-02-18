@@ -18,7 +18,9 @@ import Control.Monad.Maybe.Trans
 import Control.Monad.Error
 import Control.Monad.Error.Trans
 import Control.Monad.State.Trans
+import Control.Monad.Reader.Trans
 import Control.Monad.Writer.Trans
+import Control.Monad.RWS.Trans
 
 -- | This type class captures those monads which support tail recursion in constant stack space.
 -- |
@@ -109,6 +111,9 @@ instance monadRecErrorT :: (Error e, MonadRec m) => MonadRec (ErrorT e m) where
       Right (Left a) -> Left a
       Right (Right b) -> Right (Right b) 
 
+instance monadRecReaderT :: (MonadRec m) => MonadRec (ReaderT r m) where
+  tailRecM f a = ReaderT $ \r -> tailRecM (\a -> runReaderT (f a) r) a
+
 instance monadRecWriterT :: (Monoid w, MonadRec m) => MonadRec (WriterT w m) where
   tailRecM f a = WriterT $ tailRecM (\(Tuple a w) -> do
     Tuple m w1 <- runWriterT (f a)
@@ -116,10 +121,17 @@ instance monadRecWriterT :: (Monoid w, MonadRec m) => MonadRec (WriterT w m) whe
       Left a -> Left (Tuple a (w <> w1))
       Right b -> Right (Tuple b (w <> w1))) (Tuple a mempty)
 
+instance monadRecRWS :: (Monoid w, MonadRec m) => MonadRec (RWST r w s m) where
+  tailRecM f a = RWST $ \r s -> tailRecM (\{state:s,result:a,log:w} -> do
+    {state:s1, log:w1, result: m} <- runRWST (f a) r s
+    return case m of
+      Left a -> Left ({state:s1,result:a,log:w<>w1})
+      Right b -> Right ({state:s1,result:b,log:w<>w1})) {state:s,result:a,log:mempty}
+
 instance monadRecStateT :: (MonadRec m) => MonadRec (StateT s m) where
   tailRecM f a = StateT \s -> (tailRecM \(Tuple a s) -> do
     Tuple m s1 <- runStateT (f a) s
     return case m of
       Left a -> Left (Tuple a s1)
       Right b -> Right (Tuple b s1)) (Tuple a s)
-      
+

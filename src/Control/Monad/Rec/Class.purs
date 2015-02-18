@@ -1,6 +1,6 @@
 module Control.Monad.Rec.Class 
   ( MonadRec
-  , TailRec(..)
+  , Step(..)
   , tailRec
   , tailRecM
   , tailRecM2
@@ -22,14 +22,7 @@ import Control.Monad.State.Trans
 import Control.Monad.Writer.Trans
 
 
-data TailRec a b = Loop a | Done b
-
-isLoop :: forall a b. TailRec a b -> Boolean
-isLoop tr = case tr of
-  Loop a -> true
-  otherwise -> false
-
-
+data Step a b = Loop a | Done b
 
 -- | This type class captures those monads which support tail recursion in constant stack space.
 -- |
@@ -52,14 +45,14 @@ isLoop tr = case tr of
 -- |     return (Loop (n - 1))
 -- | ```
 class (Monad m) <= MonadRec m where
-  tailRecM :: forall a b. (a -> m (TailRec a b)) -> a -> m b
+  tailRecM :: forall a b. (a -> m (Step a b)) -> a -> m b
 
 -- | Create a tail-recursive function of two arguments which uses constant stack space.
-tailRecM2 :: forall m a b c. (MonadRec m) => (a -> b -> m (TailRec { a :: a, b :: b } c)) -> a -> b -> m c
+tailRecM2 :: forall m a b c. (MonadRec m) => (a -> b -> m (Step { a :: a, b :: b } c)) -> a -> b -> m c
 tailRecM2 f a b = tailRecM (\o -> f o.a o.b) { a: a, b: b }
 
 -- | Create a tail-recursive function of three arguments which uses constant stack space.
-tailRecM3 :: forall m a b c d. (MonadRec m) => (a -> b -> c -> m (TailRec { a :: a, b :: b, c :: c } d)) -> a -> b -> c -> m d
+tailRecM3 :: forall m a b c d. (MonadRec m) => (a -> b -> c -> m (Step { a :: a, b :: b, c :: c } d)) -> a -> b -> c -> m d
 tailRecM3 f a b c = tailRecM (\o -> f o.a o.b o.c) { a: a, b: b, c: c }
 
 -- | Create a pure tail-recursive function of one argument
@@ -70,15 +63,19 @@ tailRecM3 f a b c = tailRecM (\o -> f o.a o.b o.c) { a: a, b: b, c: c }
 -- | pow :: Number -> Number -> Number
 -- | pow n p = tailRec go { accum: 1, power: p }
 -- |   where
--- |   go :: _ -> TailRec _ Number
+-- |   go :: _ -> Step _ Number
 -- |   go { accum: acc, power: 0 } = Done acc
 -- |   go { accum: acc, power: p } = Loop { accum: acc * n, power: p - 1 }
 -- | ```
-tailRec :: forall a b. (a -> TailRec a b) -> a -> b
+tailRec :: forall a b. (a -> Step a b) -> a -> b
 tailRec f a = go (f a)
   where
   go (Loop a) = go (f a)
   go (Done b) = b
+
+isLoop :: forall a b. Step a b -> Boolean
+isLoop (Loop _) = true
+isLoop _ = false
 
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)

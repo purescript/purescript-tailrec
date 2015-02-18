@@ -122,11 +122,11 @@ instance monadRecWriterT :: (Monoid w, MonadRec m) => MonadRec (WriterT w m) whe
       Right b -> Right (Tuple b (w <> w1))) (Tuple a mempty)
 
 instance monadRecRWS :: (Monoid w, MonadRec m) => MonadRec (RWST r w s m) where
-  tailRecM f a = RWST $ \r s -> tailRecM (\{state:s,result:a,log:w} -> do
+  tailRecM f a = RWST $ \r s -> tailRecM (\{state:s, result:a, log:w} -> do
     {state:s1, log:w1, result: m} <- runRWST (f a) r s
     return case m of
-      Left a -> Left ({state:s1,result:a,log:w<>w1})
-      Right b -> Right ({state:s1,result:b,log:w<>w1})) {state:s,result:a,log:mempty}
+      Left a -> Left ({state:s1, result:a, log:w<>w1})
+      Right b -> Right ({state:s1, result:b, log:w<>w1})) {state:s, result:a, log:mempty}
 
 instance monadRecStateT :: (MonadRec m) => MonadRec (StateT s m) where
   tailRecM f a = StateT \s -> (tailRecM \(Tuple a s) -> do

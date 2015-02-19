@@ -22,6 +22,9 @@ import Control.Monad.State.Trans
 import Control.Monad.Writer.Trans
 
 
+
+-- | The result of a computation: either `Loop` containing the updated accumulator,
+-- | or `Done` containing the final result of the computation.
 data Step a b = Loop a | Done b
 
 -- | This type class captures those monads which support tail recursion in constant stack space.
@@ -73,10 +76,6 @@ tailRec f a = go (f a)
   go (Loop a) = go (f a)
   go (Done b) = b
 
-isLoop :: forall a b. Step a b -> Boolean
-isLoop (Loop _) = true
-isLoop _ = false
-
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
 
@@ -100,6 +99,8 @@ instance monadRecEff :: MonadRec (Eff eff) where
     where
     fromLoop (Loop a) = a
     fromDone (Done b) = b
+    isLoop (Loop _) = true
+    isLoop _ = false
 
 instance monadRecMaybeT :: (MonadRec m) => MonadRec (MaybeT m) where
   tailRecM f = MaybeT <<< tailRecM \a -> do

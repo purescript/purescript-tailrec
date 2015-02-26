@@ -4,6 +4,7 @@ module Control.Monad.Rec.Class
   , tailRecM
   , tailRecM2
   , tailRecM3
+  , forever
   ) where
 
 import Data.Maybe
@@ -12,6 +13,8 @@ import Data.Function
 import Data.Monoid
 import Data.Tuple
 import Data.Identity
+
+import Control.Functor ((<$))
 
 import Control.Monad.Eff
 import Control.Monad.Maybe.Trans
@@ -110,16 +113,30 @@ instance monadRecErrorT :: (Error e, MonadRec m) => MonadRec (ErrorT e m) where
       Right (Right b) -> Right (Right b) 
 
 instance monadRecWriterT :: (Monoid w, MonadRec m) => MonadRec (WriterT w m) where
-  tailRecM f a = WriterT $ tailRecM (\(Tuple a w) -> do
-    Tuple m w1 <- runWriterT (f a)
-    return case m of
-      Left a -> Left (Tuple a (w <> w1))
-      Right b -> Right (Tuple b (w <> w1))) (Tuple a mempty)
+  tailRecM f a = WriterT $ tailRecM f' (Tuple a mempty)
+    where
+    f' (Tuple a w) = do
+      Tuple m w1 <- runWriterT (f a)
+      return case m of
+        Left a -> Left (Tuple a (w <> w1))
+        Right b -> Right (Tuple b (w <> w1))
 
 instance monadRecStateT :: (MonadRec m) => MonadRec (StateT s m) where
-  tailRecM f a = StateT \s -> (tailRecM \(Tuple a s) -> do
-    Tuple m s1 <- runStateT (f a) s
-    return case m of
-      Left a -> Left (Tuple a s1)
-      Right b -> Right (Tuple b s1)) (Tuple a s)
-      
+  tailRecM f a = StateT \s -> tailRecM f' (Tuple a s)
+    where
+    f' (Tuple a s) = do
+      Tuple m s1 <- runStateT (f a) s
+      return case m of
+        Left a -> Left (Tuple a s1)
+        Right b -> Right (Tuple b s1)
+
+-- | `forever` runs an action indefinitely, using the `MonadRec` instance to
+-- | ensure constant stack usage.
+-- |
+-- | For example:
+-- |
+-- | ```purescript
+-- | main = forever $ trace "Hello, World!"
+-- | ```
+forever :: forall m a b. (MonadRec m) => m a -> m b
+forever ma = tailRecM (\u -> Left u <$ ma) unit

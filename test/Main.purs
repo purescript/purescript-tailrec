@@ -10,8 +10,10 @@ import Data.Monoid.Sum
 import Data.Tuple
 import Data.Identity
 
+import Control.Monad (when)
 import Control.Monad.Eff
 import Control.Monad.Trans
+import Control.Monad.Maybe.Trans
 import Control.Monad.Error
 import Control.Monad.Error.Trans
 import Control.Monad.Error.Class
@@ -75,3 +77,9 @@ main = do
   print result2
   result3 <- runStateT (loopState 1000000) 0
   print result3
+
+  flip runStateT 0 $ runMaybeT $ forever do
+    n <- get
+    lift $ lift $ print n
+    when (n == 10) $ MaybeT $ return Nothing
+    put (n + 1)

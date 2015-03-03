@@ -17,6 +17,8 @@ import Data.Identity
 import Control.Functor ((<$))
 
 import Control.Monad.Eff
+import Control.Monad.ST
+
 import Control.Monad.Maybe.Trans
 import Control.Monad.Error
 import Control.Monad.Error.Trans
@@ -75,26 +77,27 @@ tailRec f a = go (f a)
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
 
-foreign import tailRecEff
-  "function tailRecEff(f, br, left, right, a) {\
-  \  return function() {\
-  \    var r = f(a)();\
-  \    while (true) {\
-  \      if (br(r)) {\
-  \        var a1 = left(r);\
-  \        r = f(a1)();\
-  \      } else {\
-  \        return right(r);\
-  \      }\
-  \    }\
-  \  };\
-  \}" :: forall a b r e. Fn5 (a -> Eff e r) (r -> Boolean) (r -> a) (r -> b) a (Eff e b)
+tailRecEff :: forall a b eff. (a -> Eff eff (Either a b)) -> a -> Eff eff b
+tailRecEff f a = runST do
+  e <- f' a
+  r <- newSTRef e
+  untilE do
+    e <- readSTRef r
+    case e of
+      Left a' -> do e' <- f' a'
+                    writeSTRef r e'
+                    return false
+      Right b -> return true
+  fromRight <$> readSTRef r
+  where
+  f' :: forall h. a -> Eff (st :: ST h | eff) _
+  f' = Control.Monad.Eff.Unsafe.unsafeInterleaveEff <<< f
+
+  fromRight :: forall a b. Either a b -> b
+  fromRight (Right b) = b
 
 instance monadRecEff :: MonadRec (Eff eff) where
-  tailRecM f a = runFn5 tailRecEff f isLeft fromLeft fromRight a
-    where
-    fromLeft (Left a) = a
-    fromRight (Right b) = b
+  tailRecM = tailRecEff
 
 instance monadRecMaybeT :: (MonadRec m) => MonadRec (MaybeT m) where
   tailRecM f = MaybeT <<< tailRecM \a -> do

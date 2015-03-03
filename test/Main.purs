@@ -6,7 +6,7 @@ import Data.Maybe
 import Data.Either
 import Data.Function
 import Data.Monoid
-import Data.Monoid.Sum
+import Data.Monoid.Additive
 import Data.Tuple
 import Data.Identity
 
@@ -41,14 +41,14 @@ loop n = tailRecM go n
     return (Right unit)
   go n = return (Left (n - 1))
   
-loopWriter :: Number -> WriterT Sum (Eff (trace :: Trace)) Unit
+loopWriter :: Number -> WriterT (Additive Number) (Eff (trace :: Trace)) Unit
 loopWriter n = tailRecM go n
   where
   go 0 = do
     lift $ trace "Done!"
     return (Right unit)
   go n = do
-    tell $ Sum n  
+    tell $ Additive n  
     return (Left (n - 1))
     
 loopError :: Number -> ErrorT String (Eff (trace :: Trace)) Unit
@@ -67,9 +67,22 @@ loopState n = tailRecM go n
   go n = do
     modify \s -> s + n 
     return (Left (n - 1))
-  
+ 
+mutual :: Number -> Boolean
+mutual = tailRec go <<< Left
+  where
+  go (Left n) = even n
+  go (Right n) = odd n
+
+  even 0 = Right true
+  even n = Left (Right (n - 1))
+
+  odd 0 = Right false
+  odd n = Left (Left (n - 1))
+
 main = do
   triangle 10
+  print $ mutual 1000001
   loop 1000000
   result1 <- runWriterT $ loopWriter 1000000
   print result1

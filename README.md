@@ -51,7 +51,7 @@ where the `tailRec` function is defined in the `Control.Monad.Rec.Class` module,
 tailRec :: forall a b. (a -> Either a b) -> a -> b
 ```
 
-In the body of the loop, instead of calling the `go` function recursively, we return a value using the `Right` constructor. To break from the loop, we use the `Left` constructor.
+In the body of the loop, instead of calling the `go` function recursively, we return a value using the `Left` constructor. To break from the loop, we use the `Right` constructor.
 
 This pattern can be generalized to several monad transformers from the `purescript-transformers` library using the following type class:
 
@@ -66,8 +66,8 @@ This library provides stack-safe implementations of this class for several monad
 powWriter :: Number -> Number -> Writer Product Unit
 powWriter n = tailRecM go
   where
-  go 0 = return (Left unit)
+  go 0 = return (Right unit)
   go m = do
     tell n
-    return $ Right (m - 1)
+    return $ Left (m - 1)
 ```

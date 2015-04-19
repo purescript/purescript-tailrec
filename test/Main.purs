@@ -1,6 +1,6 @@
 module Test.Main where
 
-import Debug.Trace
+import Console 
 
 import Data.Maybe
 import Data.Either
@@ -25,44 +25,44 @@ import Control.Monad.State.Class
 import Control.Monad.Rec.Class 
 
 -- | Compute the nth triangle number
-triangle :: Number -> Eff (trace :: Trace) Number
+triangle :: Number -> Eff (console :: CONSOLE) Number
 triangle = tailRecM2 f 0
   where
   f acc 0 = return (Right acc)
   f acc n = do
-    trace $ "Accumulator: " <> show acc
+    log $ "Accumulator: " <> show acc
     return (Left { a: acc + n, b: n - 1 })
 
-loop :: Number -> Eff (trace :: Trace) Unit
+loop :: Number -> Eff (console :: CONSOLE) Unit
 loop n = tailRecM go n
   where
   go 0 = do
-    trace "Done!"
+    log "Done!"
     return (Right unit)
   go n = return (Left (n - 1))
   
-loopWriter :: Number -> WriterT (Additive Number) (Eff (trace :: Trace)) Unit
+loopWriter :: Number -> WriterT (Additive Number) (Eff (console :: CONSOLE)) Unit
 loopWriter n = tailRecM go n
   where
   go 0 = do
-    lift $ trace "Done!"
+    lift $ log "Done!"
     return (Right unit)
   go n = do
     tell $ Additive n  
     return (Left (n - 1))
     
-loopError :: Number -> ErrorT String (Eff (trace :: Trace)) Unit
+loopError :: Number -> ErrorT String (Eff (console :: CONSOLE)) Unit
 loopError n = tailRecM go n
   where
   go 0 = do
     throwError "Done!"
   go n = return (Left (n - 1))
     
-loopState :: Number -> StateT Number (Eff (trace :: Trace)) Unit
+loopState :: Number -> StateT Number (Eff (console :: CONSOLE)) Unit
 loopState n = tailRecM go n
   where
   go 0 = do
-    lift $ trace "Done!"
+    lift $ log "Done!"
     return (Right unit)
   go n = do
     modify \s -> s + n 

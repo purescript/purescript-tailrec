@@ -1,4 +1,4 @@
-module Control.Monad.Rec.Class 
+module Control.Monad.Rec.Class
   ( MonadRec
   , tailRec
   , tailRecM
@@ -7,23 +7,12 @@ module Control.Monad.Rec.Class
   , forever
   ) where
 
-import Data.Maybe
-import Data.Either
-import Data.Function
-import Data.Monoid
-import Data.Tuple
-import Data.Identity
-
-import Control.Functor ((<$))
-
-import Control.Monad.Eff
-import Control.Monad.ST
-
-import Control.Monad.Maybe.Trans
-import Control.Monad.Error
-import Control.Monad.Error.Trans
-import Control.Monad.State.Trans
-import Control.Monad.Writer.Trans
+import Control.Monad.Eff (Eff(), untilE)
+import Control.Monad.ST (ST(), runST, newSTRef, readSTRef, writeSTRef)
+import Data.Either (Either(..))
+import Data.Functor ((<$))
+import Data.Identity (Identity(..), runIdentity)
+import qualified Control.Monad.Eff.Unsafe as U
 
 -- | This type class captures those monads which support tail recursion in constant stack space.
 -- |
@@ -42,7 +31,7 @@ import Control.Monad.Writer.Trans
 -- |     lift $ trace "Done!"
 -- |     return (Right unit)
 -- |   go n = do
--- |     tell $ Sum n  
+-- |     tell $ Sum n
 -- |     return (Left (n - 1))
 -- | ```
 class (Monad m) <= MonadRec m where
@@ -77,6 +66,9 @@ tailRec f a = go (f a)
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
 
+instance monadRecEff :: MonadRec (Eff eff) where
+  tailRecM = tailRecEff
+
 tailRecEff :: forall a b eff. (a -> Eff eff (Either a b)) -> a -> Eff eff b
 tailRecEff f a = runST do
   e <- f' a
@@ -91,47 +83,9 @@ tailRecEff f a = runST do
   fromRight <$> readSTRef r
   where
   f' :: forall h. a -> Eff (st :: ST h | eff) _
-  f' = Control.Monad.Eff.Unsafe.unsafeInterleaveEff <<< f
-
+  f' = U.unsafeInterleaveEff <<< f
   fromRight :: forall a b. Either a b -> b
   fromRight (Right b) = b
-
-instance monadRecEff :: MonadRec (Eff eff) where
-  tailRecM = tailRecEff
-
-instance monadRecMaybeT :: (MonadRec m) => MonadRec (MaybeT m) where
-  tailRecM f = MaybeT <<< tailRecM \a -> do
-    m <- runMaybeT (f a)
-    return case m of
-      Nothing -> Right Nothing
-      Just (Left a) -> Left a
-      Just (Right b) -> Right (Just b) 
-
-instance monadRecErrorT :: (Error e, MonadRec m) => MonadRec (ErrorT e m) where
-  tailRecM f = ErrorT <<< tailRecM \a -> do
-    m <- runErrorT (f a)
-    return case m of
-      Left e -> Right (Left e)
-      Right (Left a) -> Left a
-      Right (Right b) -> Right (Right b) 
-
-instance monadRecWriterT :: (Monoid w, MonadRec m) => MonadRec (WriterT w m) where
-  tailRecM f a = WriterT $ tailRecM f' (Tuple a mempty)
-    where
-    f' (Tuple a w) = do
-      Tuple m w1 <- runWriterT (f a)
-      return case m of
-        Left a -> Left (Tuple a (w <> w1))
-        Right b -> Right (Tuple b (w <> w1))
-
-instance monadRecStateT :: (MonadRec m) => MonadRec (StateT s m) where
-  tailRecM f a = StateT \s -> tailRecM f' (Tuple a s)
-    where
-    f' (Tuple a s) = do
-      Tuple m s1 <- runStateT (f a) s
-      return case m of
-        Left a -> Left (Tuple a s1)
-        Right b -> Right (Tuple b s1)
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.

@@ -2,7 +2,7 @@
 
 A type class which captures stack-safe monadic tail recursion.
 
-## Installing
+## Installation
 
 ```
 bower i purescript-tailrec
@@ -60,14 +60,7 @@ class (Monad m) <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
 ```
 
-This library provides stack-safe implementations of this class for several monads, so that we can rewrite `powWriter` as follows, without worrying about blowing the stack:
+## Module documentation
 
-```purescript
-powWriter :: Number -> Number -> Writer Product Unit
-powWriter n = tailRecM go
-  where
-  go 0 = return (Right unit)
-  go m = do
-    tell n
-    return $ Left (m - 1)
-```
+- [Control.Monad.Rec.Class](docs/Control.Monad.Rec.Class.md)
+

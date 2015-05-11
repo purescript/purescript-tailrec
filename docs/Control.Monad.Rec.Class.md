@@ -1,5 +1,3 @@
-# Module Documentation
-
 ## Module Control.Monad.Rec.Class
 
 #### `MonadRec`
@@ -7,6 +5,12 @@
 ``` purescript
 class (Monad m) <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
+```
+
+##### Instances
+``` purescript
+instance monadRecIdentity :: MonadRec Identity
+instance monadRecEff :: MonadRec (Eff eff)
 ```
 
 This type class captures those monads which support tail recursion in constant stack space.
@@ -26,14 +30,14 @@ loopWriter n = tailRecM go n
     lift $ trace "Done!"
     return (Right unit)
   go n = do
-    tell $ Sum n  
+    tell $ Sum n
     return (Left (n - 1))
 ```
 
 #### `tailRecM2`
 
 ``` purescript
-tailRecM2 :: forall m a b c. (MonadRec m) => (a -> b -> m (Either { b :: b, a :: a } c)) -> a -> b -> m c
+tailRecM2 :: forall m a b c. (MonadRec m) => (a -> b -> m (Either { a :: a, b :: b } c)) -> a -> b -> m c
 ```
 
 Create a tail-recursive function of two arguments which uses constant stack space.
@@ -41,7 +45,7 @@ Create a tail-recursive function of two arguments which uses constant stack spac
 #### `tailRecM3`
 
 ``` purescript
-tailRecM3 :: forall m a b c d. (MonadRec m) => (a -> b -> c -> m (Either { c :: c, b :: b, a :: a } d)) -> a -> b -> c -> m d
+tailRecM3 :: forall m a b c d. (MonadRec m) => (a -> b -> c -> m (Either { a :: a, b :: b, c :: c } d)) -> a -> b -> c -> m d
 ```
 
 Create a tail-recursive function of three arguments which uses constant stack space.
@@ -65,48 +69,6 @@ pow n p = tailRec go { accum: 1, power: p }
   go { accum: acc, power: p } = Left { accum: acc * n, power: p - 1 }
 ```
 
-#### `monadRecIdentity`
-
-``` purescript
-instance monadRecIdentity :: MonadRec Identity
-```
-
-
-#### `monadRecEff`
-
-``` purescript
-instance monadRecEff :: MonadRec (Eff eff)
-```
-
-
-#### `monadRecMaybeT`
-
-``` purescript
-instance monadRecMaybeT :: (MonadRec m) => MonadRec (MaybeT m)
-```
-
-
-#### `monadRecErrorT`
-
-``` purescript
-instance monadRecErrorT :: (Error e, MonadRec m) => MonadRec (ErrorT e m)
-```
-
-
-#### `monadRecWriterT`
-
-``` purescript
-instance monadRecWriterT :: (Monoid w, MonadRec m) => MonadRec (WriterT w m)
-```
-
-
-#### `monadRecStateT`
-
-``` purescript
-instance monadRecStateT :: (MonadRec m) => MonadRec (StateT s m)
-```
-
-
 #### `forever`
 
 ``` purescript
@@ -121,6 +83,5 @@ For example:
 ```purescript
 main = forever $ trace "Hello, World!"
 ```
-
 
 

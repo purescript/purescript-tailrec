@@ -7,6 +7,8 @@ module Control.Monad.Rec.Class
   , forever
   ) where
 
+import Prelude
+
 import Control.Monad.Eff (Eff(), untilE)
 import Control.Monad.ST (ST(), runST, newSTRef, readSTRef, writeSTRef)
 import Data.Either (Either(..))

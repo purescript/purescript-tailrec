@@ -1,16 +1,11 @@
 module Test.Main where
 
 import Prelude
-
-import Console
 import Control.Monad (when)
-import Control.Monad.Eff
+import Control.Monad.Eff (Eff())
+import Control.Monad.Eff.Console (CONSOLE(), log, print)
 import Control.Monad.Rec.Class
-import Data.Either
-import Data.Identity
-import Data.Maybe
--- import Data.Monoid
--- import Data.Monoid.Additive
+import Data.Either (Either(..))
 
 -- | Compute the nth triangle number
 triangle :: Int -> Eff (console :: CONSOLE) Int
@@ -41,6 +36,7 @@ mutual = tailRec go <<< Left
   odd 0 = Right false
   odd n = Left (Left (n - 1))
 
+main :: Eff (console :: CONSOLE) Unit
 main = do
   triangle 10
   print $ mutual 1000001

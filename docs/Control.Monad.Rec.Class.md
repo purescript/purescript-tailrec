@@ -7,12 +7,6 @@ class (Monad m) <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
 ```
 
-##### Instances
-``` purescript
-instance monadRecIdentity :: MonadRec Identity
-instance monadRecEff :: MonadRec (Eff eff)
-```
-
 This type class captures those monads which support tail recursion in constant stack space.
 
 The `tailRecM` function takes a step function, and applies that step function recursively
@@ -32,6 +26,12 @@ loopWriter n = tailRecM go n
   go n = do
     tell $ Sum n
     return (Left (n - 1))
+```
+
+##### Instances
+``` purescript
+instance monadRecIdentity :: MonadRec Identity
+instance monadRecEff :: MonadRec (Eff eff)
 ```
 
 #### `tailRecM2`

@@ -88,6 +88,9 @@ tailRecEff f a = runST do
   f' = U.unsafeInterleaveEff <<< f
   fromRight :: forall a b. Either a b -> b
   fromRight (Right b) = b
+  fromRight _ = unsafeThrow "Found Left value in tailRecEff fromRight"
+
+foreign import unsafeThrow :: forall a. String -> a
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.

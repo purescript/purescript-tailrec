@@ -15,6 +15,7 @@ import Data.Either (Either(..))
 import Data.Functor ((<$))
 import Data.Identity (Identity(..), runIdentity)
 import qualified Control.Monad.Eff.Unsafe as U
+import qualified Data.Either.Unsafe as U
 
 -- | This type class captures those monads which support tail recursion in constant stack space.
 -- |
@@ -82,12 +83,10 @@ tailRecEff f a = runST do
                     writeSTRef r e'
                     return false
       Right b -> return true
-  fromRight <$> readSTRef r
+  U.fromRight <$> readSTRef r
   where
-  f' :: forall h. a -> Eff (st :: ST h | eff) _
+  f' :: forall h. a -> Eff (st :: ST h | eff) (Either a b)
   f' = U.unsafeInterleaveEff <<< f
-  fromRight :: forall a b. Either a b -> b
-  fromRight (Right b) = b
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.

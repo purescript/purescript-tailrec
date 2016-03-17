@@ -60,11 +60,11 @@ In the body of the loop, instead of calling the `go` function recursively, we re
 This pattern can be generalized to several monad transformers from the `purescript-transformers` library using the following type class:
 
 ```purescript
-class (Monad m) <= MonadRec m where
+class Monad m <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
 ```
 
-## Module documentation
+## Documentation
 
-- [Control.Monad.Rec.Class](docs/Control/Monad/Rec/Class.md)
+Module documentation is [published on Pursuit](http://pursuit.purescript.org/packages/purescript-tailrec).
 

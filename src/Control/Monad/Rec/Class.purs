@@ -7,20 +7,21 @@ module Control.Monad.Rec.Class
   , forever
   ) where
 
-import Prelude (class Monad, unit, (<$>), return, bind, (<<<))
+import Prelude
 
 import Control.Monad.Eff (Eff(), untilE)
+import Control.Monad.Eff.Unsafe as U
 import Control.Monad.ST (ST(), runST, newSTRef, readSTRef, writeSTRef)
-import Data.Either (Either(..))
-import Data.Functor ((<$))
+
+import Data.Either (Either(..), fromRight)
 import Data.Identity (Identity(..), runIdentity)
-import Control.Monad.Eff.Unsafe (unsafeInterleaveEff) as U
-import Data.Either.Unsafe (fromRight) as U
+
+import Partial.Unsafe (unsafePartial)
 
 -- | This type class captures those monads which support tail recursion in constant stack space.
 -- |
 -- | The `tailRecM` function takes a step function, and applies that step function recursively
--- | until a return value of type `b` is found.
+-- | until a pure value of type `b` is found.
 -- |
 -- | Instances are provided for standard monad transformers.
 -- |
@@ -32,21 +33,34 @@ import Data.Either.Unsafe (fromRight) as U
 -- |   where
 -- |   go 0 = do
 -- |     lift $ trace "Done!"
--- |     return (Right unit)
+-- |     pure (Right unit)
 -- |   go n = do
 -- |     tell $ Sum n
--- |     return (Left (n - 1))
+-- |     pure (Left (n - 1))
 -- | ```
-class (Monad m) <= MonadRec m where
+class Monad m <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
 
 -- | Create a tail-recursive function of two arguments which uses constant stack space.
-tailRecM2 :: forall m a b c. (MonadRec m) => (a -> b -> m (Either { a :: a, b :: b } c)) -> a -> b -> m c
-tailRecM2 f a b = tailRecM (\o -> f o.a o.b) { a: a, b: b }
+tailRecM2
+  :: forall m a b c
+   . MonadRec m
+  => (a -> b -> m (Either { a :: a, b :: b } c))
+  -> a
+  -> b
+  -> m c
+tailRecM2 f a b = tailRecM (\o -> f o.a o.b) { a, b }
 
 -- | Create a tail-recursive function of three arguments which uses constant stack space.
-tailRecM3 :: forall m a b c d. (MonadRec m) => (a -> b -> c -> m (Either { a :: a, b :: b, c :: c } d)) -> a -> b -> c -> m d
-tailRecM3 f a b c = tailRecM (\o -> f o.a o.b o.c) { a: a, b: b, c: c }
+tailRecM3
+  :: forall m a b c d
+   . MonadRec m
+  => (a -> b -> c -> m (Either { a :: a, b :: b, c :: c } d))
+  -> a
+  -> b
+  -> c
+  -> m d
+tailRecM3 f a b c = tailRecM (\o -> f o.a o.b o.c) { a, b, c }
 
 -- | Create a pure tail-recursive function of one argument
 -- |
@@ -79,11 +93,12 @@ tailRecEff f a = runST do
   untilE do
     e' <- readSTRef r
     case e' of
-      Left a' -> do e'' <- f' a'
-                    writeSTRef r e''
-                    return false
-      Right b -> return true
-  U.fromRight <$> readSTRef r
+      Left a' -> do
+        e'' <- f' a'
+        writeSTRef r e''
+        pure false
+      Right b -> pure true
+  unsafePartial $ fromRight <$> readSTRef r
   where
   f' :: forall h. a -> Eff (st :: ST h | eff) (Either a b)
   f' = U.unsafeInterleaveEff <<< f
@@ -96,5 +111,5 @@ tailRecEff f a = runST do
 -- | ```purescript
 -- | main = forever $ trace "Hello, World!"
 -- | ```
-forever :: forall m a b. (MonadRec m) => m a -> m b
+forever :: forall m a b. MonadRec m => m a -> m b
 forever ma = tailRecM (\u -> Left u <$ ma) unit

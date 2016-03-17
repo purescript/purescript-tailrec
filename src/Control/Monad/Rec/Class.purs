@@ -1,5 +1,5 @@
 module Control.Monad.Rec.Class
-  ( MonadRec
+  ( class MonadRec
   , tailRec
   , tailRecM
   , tailRecM2
@@ -7,15 +7,15 @@ module Control.Monad.Rec.Class
   , forever
   ) where
 
-import Prelude
+import Prelude (class Monad, unit, (<$>), return, bind, (<<<))
 
 import Control.Monad.Eff (Eff(), untilE)
 import Control.Monad.ST (ST(), runST, newSTRef, readSTRef, writeSTRef)
 import Data.Either (Either(..))
 import Data.Functor ((<$))
 import Data.Identity (Identity(..), runIdentity)
-import qualified Control.Monad.Eff.Unsafe as U
-import qualified Data.Either.Unsafe as U
+import Control.Monad.Eff.Unsafe (unsafeInterleaveEff) as U
+import Data.Either.Unsafe (fromRight) as U
 
 -- | This type class captures those monads which support tail recursion in constant stack space.
 -- |
@@ -77,10 +77,10 @@ tailRecEff f a = runST do
   e <- f' a
   r <- newSTRef e
   untilE do
-    e <- readSTRef r
-    case e of
-      Left a' -> do e' <- f' a'
-                    writeSTRef r e'
+    e' <- readSTRef r
+    case e' of
+      Left a' -> do e'' <- f' a'
+                    writeSTRef r e''
                     return false
       Right b -> return true
   U.fromRight <$> readSTRef r

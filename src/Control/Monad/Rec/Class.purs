@@ -12,6 +12,7 @@ import Prelude
 import Control.Monad.Eff (Eff(), untilE)
 import Control.Monad.Eff.Unsafe as U
 import Control.Monad.ST (ST(), runST, newSTRef, readSTRef, writeSTRef)
+import Control.Bind(join)
 
 import Data.Either (Either(..), fromRight)
 import Data.Identity (Identity(..), runIdentity)
@@ -85,6 +86,12 @@ instance monadRecIdentity :: MonadRec Identity where
 
 instance monadRecEff :: MonadRec (Eff eff) where
   tailRecM = tailRecEff
+
+instance monadRecEither :: MonadRec (Either e) where
+  tailRecM f a = case f a of
+    Left e -> Left e
+    Right (Left a) -> tailRecM f a
+    Right (Right b) -> Right b
 
 tailRecEff :: forall a b eff. (a -> Eff eff (Either a b)) -> a -> Eff eff b
 tailRecEff f a = runST do

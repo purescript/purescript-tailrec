@@ -23,7 +23,7 @@
     "purescript-identity": "^1.0.0-rc.1",
     "purescript-either": "^1.0.0-rc.1",
     "purescript-st": "^1.0.0-rc.1",
-    "purescript-partial": "^1.1.0"
+    "purescript-partial": "^1.1.2"
   },
   "devDependencies": {
     "purescript-console": "^1.0.0-rc.1"

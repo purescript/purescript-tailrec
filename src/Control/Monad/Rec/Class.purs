@@ -7,7 +7,7 @@ module Control.Monad.Rec.Class
   , forever
   ) where
 
-import Prelude
+import Prelude (class Monad, unit, (<$), (<$>), ($), pure, bind, (<<<))
 
 import Control.Monad.Eff (Eff(), untilE)
 import Control.Monad.Eff.Unsafe as U
@@ -85,6 +85,14 @@ instance monadRecIdentity :: MonadRec Identity where
 
 instance monadRecEff :: MonadRec (Eff eff) where
   tailRecM = tailRecEff
+
+instance monadRecEither :: MonadRec (Either e) where
+  tailRecM f a0 =
+    let
+      g (Left e) = Right (Left e)
+      g (Right (Left a)) =  Left (f a)
+      g (Right (Right b)) =  Right (Right b)
+    in tailRec g (f a0)
 
 tailRecEff :: forall a b eff. (a -> Eff eff (Either a b)) -> a -> Eff eff b
 tailRecEff f a = runST do

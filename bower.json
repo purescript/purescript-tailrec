@@ -20,12 +20,12 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-identity": "^1.0.0",
-    "purescript-either": "^1.0.0",
-    "purescript-st": "^1.0.0",
+    "purescript-identity": "^2.0.0",
+    "purescript-either": "^2.0.0",
+    "purescript-st": "^2.0.0",
     "purescript-partial": "^1.1.2"
   },
   "devDependencies": {
-    "purescript-console": "^1.0.0"
+    "purescript-console": "^2.0.0"
   }
 }

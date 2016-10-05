@@ -14,7 +14,7 @@ import Control.Monad.Eff.Unsafe as U
 import Control.Monad.ST (ST(), runST, newSTRef, readSTRef, writeSTRef)
 
 import Data.Either (Either(..), fromRight)
-import Data.Identity (Identity(..), runIdentity)
+import Data.Identity (Identity(..))
 
 import Partial.Unsafe (unsafePartial)
 
@@ -82,6 +82,7 @@ tailRec f a = go (f a)
 
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
+    where runIdentity (Identity x) = x
 
 instance monadRecEff :: MonadRec (Eff eff) where
   tailRecM = tailRecEff
@@ -109,7 +110,7 @@ tailRecEff f a = runST do
   unsafePartial $ fromRight <$> readSTRef r
   where
   f' :: forall h. a -> Eff (st :: ST h | eff) (Either a b)
-  f' = U.unsafeInterleaveEff <<< f
+  f' = U.unsafeCoerceEff <<< f
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.

@@ -6,6 +6,8 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log, logShow)
 import Control.Monad.Rec.Class (Step(..), tailRec, tailRecM, tailRecM2)
 
+import Data.Either (Either(..))
+
 -- | Compute the nth triangle number
 triangle :: Int -> Eff (console :: CONSOLE) Int
 triangle = tailRecM2 f 0
@@ -24,16 +26,16 @@ loop n = tailRecM go n
   go n = pure (Loop (n - 1))
 
 mutual :: Int -> Boolean
-mutual = tailRec go <<< Loop
+mutual = tailRec go <<< Left
   where
-  go (Loop n) = even n
-  go (Done n) = odd n
+  go (Left n) = even n
+  go (Right n) = odd n
 
   even 0 = Done true
-  even n = Loop (Done (n - 1))
+  even n = Loop (Right (n - 1))
 
   odd 0 = Done false
-  odd n = Loop (Loop (n - 1))
+  odd n = Loop (Left (n - 1))
 
 main :: Eff (console :: CONSOLE) Unit
 main = do

@@ -16,12 +16,21 @@ import Control.Monad.ST (ST, runST, newSTRef, readSTRef, writeSTRef)
 
 import Data.Either (Either(..))
 import Data.Identity (Identity(..))
+import Data.Bifunctor (class Bifunctor)
 
 import Partial.Unsafe (unsafePartial)
 
 -- | The result of a computation: either `Loop` containing the updated
 -- | accumulator, or `Done` containing the final result of the computation.
 data Step a b = Loop a | Done b
+
+instance functorStep :: Functor (Step a) where
+  map f (Loop a) = Loop a
+  map f (Done b) = Done (f b)
+
+instance bifunctorStep :: Bifunctor Step where
+  bimap f _ (Loop a) = Loop (f a)
+  bimap _ g (Done b) = Done (g b)
 
 -- | This type class captures those monads which support tail recursion in
 -- | constant stack space.

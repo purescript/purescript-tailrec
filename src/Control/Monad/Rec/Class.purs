@@ -1,5 +1,6 @@
 module Control.Monad.Rec.Class
-  ( class MonadRec
+  ( Step(..)
+  , class MonadRec
   , tailRec
   , tailRecM
   , tailRecM2
@@ -7,21 +8,35 @@ module Control.Monad.Rec.Class
   , forever
   ) where
 
-import Prelude (class Monad, unit, (<$), (<$>), ($), pure, bind, (<<<))
+import Prelude
 
-import Control.Monad.Eff (Eff(), untilE)
+import Control.Monad.Eff (Eff, untilE)
 import Control.Monad.Eff.Unsafe as U
-import Control.Monad.ST (ST(), runST, newSTRef, readSTRef, writeSTRef)
+import Control.Monad.ST (ST, runST, newSTRef, readSTRef, writeSTRef)
 
-import Data.Either (Either(..), fromRight)
+import Data.Either (Either(..))
 import Data.Identity (Identity(..))
+import Data.Bifunctor (class Bifunctor)
 
 import Partial.Unsafe (unsafePartial)
 
--- | This type class captures those monads which support tail recursion in constant stack space.
+-- | The result of a computation: either `Loop` containing the updated
+-- | accumulator, or `Done` containing the final result of the computation.
+data Step a b = Loop a | Done b
+
+instance functorStep :: Functor (Step a) where
+  map f (Loop a) = Loop a
+  map f (Done b) = Done (f b)
+
+instance bifunctorStep :: Bifunctor Step where
+  bimap f _ (Loop a) = Loop (f a)
+  bimap _ g (Done b) = Done (g b)
+
+-- | This type class captures those monads which support tail recursion in
+-- | constant stack space.
 -- |
--- | The `tailRecM` function takes a step function, and applies that step function recursively
--- | until a pure value of type `b` is found.
+-- | The `tailRecM` function takes a step function, and applies that step
+-- | function recursively until a pure value of type `b` is found.
 -- |
 -- | Instances are provided for standard monad transformers.
 -- |
@@ -33,19 +48,19 @@ import Partial.Unsafe (unsafePartial)
 -- |   where
 -- |   go 0 = do
 -- |     lift $ trace "Done!"
--- |     pure (Right unit)
+-- |     pure (Done unit)
 -- |   go n = do
 -- |     tell $ Sum n
--- |     pure (Left (n - 1))
+-- |     pure (Loop (n - 1))
 -- | ```
 class Monad m <= MonadRec m where
-  tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
+  tailRecM :: forall a b. (a -> m (Step a b)) -> a -> m b
 
 -- | Create a tail-recursive function of two arguments which uses constant stack space.
 tailRecM2
   :: forall m a b c
    . MonadRec m
-  => (a -> b -> m (Either { a :: a, b :: b } c))
+  => (a -> b -> m (Step { a :: a, b :: b } c))
   -> a
   -> b
   -> m c
@@ -55,7 +70,7 @@ tailRecM2 f a b = tailRecM (\o -> f o.a o.b) { a, b }
 tailRecM3
   :: forall m a b c d
    . MonadRec m
-  => (a -> b -> c -> m (Either { a :: a, b :: b, c :: c } d))
+  => (a -> b -> c -> m (Step { a :: a, b :: b, c :: c } d))
   -> a
   -> b
   -> c
@@ -70,15 +85,15 @@ tailRecM3 f a b c = tailRecM (\o -> f o.a o.b o.c) { a, b, c }
 -- | pow :: Number -> Number -> Number
 -- | pow n p = tailRec go { accum: 1, power: p }
 -- |   where
--- |   go :: _ -> Either _ Number
--- |   go { accum: acc, power: 0 } = Right acc
--- |   go { accum: acc, power: p } = Left { accum: acc * n, power: p - 1 }
+-- |   go :: _ -> Step _ Number
+-- |   go { accum: acc, power: 0 } = Done acc
+-- |   go { accum: acc, power: p } = Loop { accum: acc * n, power: p - 1 }
 -- | ```
-tailRec :: forall a b. (a -> Either a b) -> a -> b
+tailRec :: forall a b. (a -> Step a b) -> a -> b
 tailRec f a = go (f a)
   where
-  go (Left a) = go (f a)
-  go (Right b) = b
+  go (Loop a) = go (f a)
+  go (Done b) = b
 
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
@@ -90,27 +105,29 @@ instance monadRecEff :: MonadRec (Eff eff) where
 instance monadRecEither :: MonadRec (Either e) where
   tailRecM f a0 =
     let
-      g (Left e) = Right (Left e)
-      g (Right (Left a)) =  Left (f a)
-      g (Right (Right b)) =  Right (Right b)
+      g (Left e) = Done (Left e)
+      g (Right (Loop a)) = Loop (f a)
+      g (Right (Done b)) = Done (Right b)
     in tailRec g (f a0)
 
-tailRecEff :: forall a b eff. (a -> Eff eff (Either a b)) -> a -> Eff eff b
+tailRecEff :: forall a b eff. (a -> Eff eff (Step a b)) -> a -> Eff eff b
 tailRecEff f a = runST do
   e <- f' a
   r <- newSTRef e
   untilE do
     e' <- readSTRef r
     case e' of
-      Left a' -> do
+      Loop a' -> do
         e'' <- f' a'
         writeSTRef r e''
         pure false
-      Right b -> pure true
-  unsafePartial $ fromRight <$> readSTRef r
+      Done b -> pure true
+  fromDone <$> readSTRef r
   where
-  f' :: forall h. a -> Eff (st :: ST h | eff) (Either a b)
+  f' :: forall h. a -> Eff (st :: ST h | eff) (Step a b)
   f' = U.unsafeCoerceEff <<< f
+  fromDone :: Step a b -> b
+  fromDone = unsafePartial \(Done b) -> b
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.
@@ -121,4 +138,4 @@ tailRecEff f a = runST do
 -- | main = forever $ trace "Hello, World!"
 -- | ```
 forever :: forall m a b. MonadRec m => m a -> m b
-forever ma = tailRecM (\u -> Left u <$ ma) unit
+forever ma = tailRecM (\u -> Loop u <$ ma) unit

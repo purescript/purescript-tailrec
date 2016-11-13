@@ -1,8 +1,7 @@
 # purescript-tailrec
 
-[![Latest release](http://img.shields.io/bower/v/purescript-tailrec.svg)](https://github.com/purescript/purescript-tailrec/releases)
-[![Build Status](https://travis-ci.org/purescript/purescript-tailrec.svg?branch=master)](https://travis-ci.org/purescript/purescript-tailrec)
-[![Dependency Status](https://www.versioneye.com/user/projects/55848cb8363861001b0001a7/badge.svg?style=flat)](https://www.versioneye.com/user/projects/55848cb8363861001b0001a7)
+[![Latest release](http://img.shields.io/github/release/purescript/purescript-tailrec.svg)](https://github.com/purescript/purescript-tailrec/releases)
+[![Build status](https://travis-ci.org/purescript/purescript-tailrec.svg?branch=master)](https://travis-ci.org/purescript/purescript-tailrec)
 
 A type class which captures stack-safe monadic tail recursion.
 
@@ -67,4 +66,3 @@ class Monad m <= MonadRec m where
 ## Documentation
 
 Module documentation is [published on Pursuit](http://pursuit.purescript.org/packages/purescript-tailrec).
-

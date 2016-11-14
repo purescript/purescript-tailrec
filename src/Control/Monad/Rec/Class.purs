@@ -90,7 +90,7 @@ tailRecM3 f a b c = tailRecM (\o -> f o.a o.b o.c) { a, b, c }
 -- |   go { accum: acc, power: p } = Loop { accum: acc * n, power: p - 1 }
 -- | ```
 tailRec :: forall a b. (a -> Step a b) -> a -> b
-tailRec f a = go (f a)
+tailRec f = go <<< f
   where
   go (Loop a) = go (f a)
   go (Done b) = b

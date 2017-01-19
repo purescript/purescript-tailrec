@@ -43,24 +43,24 @@ However, we can refactor the original function to isolate the recursive function
 pow :: Number -> Number -> Number
 pow n p = tailRec go { accum: 1, power: p }
   where
-  go :: _ -> Either _ Number
-  go { accum: acc, power: 0 } = Right acc
-  go { accum: acc, power: p } = Left { accum: acc * n, power: p - 1 }
+  go :: _ -> Step _ Number
+  go { accum: acc, power: 0 } = Done acc
+  go { accum: acc, power: p } = Loop { accum: acc * n, power: p - 1 }
 ```
 
 where the `tailRec` function is defined in the `Control.Monad.Rec.Class` module, with type:
 
 ```purescript
-tailRec :: forall a b. (a -> Either a b) -> a -> b
+tailRec :: forall a b. (a -> Step a b) -> a -> b
 ```
 
-In the body of the loop, instead of calling the `go` function recursively, we return a value using the `Left` constructor. To break from the loop, we use the `Right` constructor.
+In the body of the loop, instead of calling the `go` function recursively, we return a value using the `Loop` constructor. To break from the loop, we use the `Done` constructor.
 
 This pattern can be generalized to several monad transformers from the `purescript-transformers` library using the following type class:
 
 ```purescript
 class Monad m <= MonadRec m where
-  tailRecM :: forall a b. (a -> m (Either a b)) -> a -> m b
+  tailRecM :: forall a b. (a -> m (Step a b)) -> a -> m b
 ```
 
 ## Documentation

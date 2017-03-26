@@ -23,7 +23,7 @@ loop n = tailRecM go n
   go 0 = do
     log "Done!"
     pure (Done unit)
-  go n = pure (Loop (n - 1))
+  go n' = pure (Loop (n' - 1))
 
 mutual :: Int -> Boolean
 mutual = tailRec go <<< Left
@@ -39,6 +39,6 @@ mutual = tailRec go <<< Left
 
 main :: Eff (console :: CONSOLE) Unit
 main = do
-  triangle 10
+  _ <- triangle 10
   logShow $ mutual 1000001
   loop 1000000

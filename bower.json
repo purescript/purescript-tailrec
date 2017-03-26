@@ -22,7 +22,7 @@
   "dependencies": {
     "purescript-identity": "^3.0.0",
     "purescript-either": "^3.0.0",
-    "purescript-st": "ps-0.11",
+    "purescript-st": "^3.0.0",
     "purescript-partial": "^1.2.0"
   },
   "devDependencies": {

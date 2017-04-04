@@ -102,6 +102,9 @@ instance monadRecIdentity :: MonadRec Identity where
 instance monadRecEff :: MonadRec (Eff eff) where
   tailRecM = tailRecEff
 
+instance monadRecFunction :: MonadRec ((->) e) where
+  tailRecM f a0 e = tailRec (\a -> f a e) a0
+
 instance monadRecEither :: MonadRec (Either e) where
   tailRecM f a0 =
     let

@@ -25,6 +25,12 @@ loop n = tailRecM go n
     pure (Done unit)
   go n' = pure (Loop (n' - 1))
 
+loopFunction :: Int -> ({result :: Int, step :: Int} -> Int)
+loopFunction = tailRecM go
+  where
+  go 0 = Done <$> \e -> e.result
+  go n = Loop <$> \e -> n - e.step
+
 mutual :: Int -> Boolean
 mutual = tailRec go <<< Left
   where
@@ -42,3 +48,4 @@ main = do
   _ <- triangle 10
   logShow $ mutual 1000001
   loop 1000000
+  logShow $ loopFunction 10000000 ({result:100, step:1})

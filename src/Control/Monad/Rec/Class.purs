@@ -15,6 +15,7 @@ import Control.Monad.Eff.Unsafe as U
 import Control.Monad.ST (ST, runST, newSTRef, readSTRef, writeSTRef)
 
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 import Data.Identity (Identity(..))
 import Data.Bifunctor (class Bifunctor)
 
@@ -111,6 +112,14 @@ instance monadRecEither :: MonadRec (Either e) where
       g (Left e) = Done (Left e)
       g (Right (Loop a)) = Loop (f a)
       g (Right (Done b)) = Done (Right b)
+    in tailRec g (f a0)
+
+instance monadRecMaybe :: MonadRec Maybe where
+  tailRecM f a0 =
+    let
+      g Nothing = Done Nothing
+      g (Just (Loop a)) = Loop (f a)
+      g (Just (Done b)) = Done (Just b)
     in tailRec g (f a0)
 
 tailRecEff :: forall a b eff. (a -> Eff eff (Step a b)) -> a -> Eff eff b

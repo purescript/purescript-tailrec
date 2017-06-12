@@ -7,6 +7,7 @@ import Control.Monad.Eff.Console (CONSOLE, log, logShow)
 import Control.Monad.Rec.Class (Step(..), tailRec, tailRecM, tailRecM2)
 
 import Data.Either (Either(..))
+import Data.Iterable (foreach, foldRec)
 
 -- | Compute the nth triangle number
 triangle :: Int -> Eff (console :: CONSOLE) Int
@@ -49,3 +50,9 @@ main = do
   logShow $ mutual 1000001
   loop 1000000
   logShow $ loopFunction 10000000 ({result:100, step:1})
+
+  log "fold"
+  foreach logShow [0, 1, 2, 3, 4]
+
+  log "foldRec"
+  logShow =<< foldRec (\x y -> logShow y *> pure (x + y)) 0 [1, 2, 3, 4]

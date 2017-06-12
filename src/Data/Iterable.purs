@@ -44,7 +44,7 @@ instance iterableArray :: Iterable Array ArrayIndex where
   iterator arr = Iterator {
     state: Index 0,
     get: indexArray arr,
-    next: mkArrayNext (arrayLengthImpl arr - 1)
+    next: arrayNext (arrayLengthImpl arr - 1)
   }
 
 newtype ArrayIndex a = Index Int
@@ -55,6 +55,6 @@ foreign import arrayLengthImpl :: forall a. Array a -> Int
 indexArray :: forall a. Array a -> ArrayIndex a -> a
 indexArray arr (Index i) = arrayIndexImpl arr i
 
-mkArrayNext :: forall a. Int -> ArrayIndex a -> Step (ArrayIndex a) Unit
-mkArrayNext lastIndex (Index i) =
+arrayNext :: forall a. Int -> ArrayIndex a -> Step (ArrayIndex a) Unit
+arrayNext lastIndex (Index i) =
   if i < lastIndex then Loop (Index (i + 1)) else Done unit

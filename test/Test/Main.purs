@@ -2,14 +2,13 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log, logShow)
 import Control.Monad.Rec.Class (Step(..), tailRec, tailRecM, tailRecM2)
-
 import Data.Either (Either(..))
+import Effect (Effect)
+import Effect.Console (log, logShow)
 
 -- | Compute the nth triangle number
-triangle :: Int -> Eff (console :: CONSOLE) Int
+triangle :: Int -> Effect Int
 triangle = tailRecM2 f 0
   where
   f acc 0 = pure (Done acc)
@@ -17,7 +16,7 @@ triangle = tailRecM2 f 0
     log $ "Accumulator: " <> show acc
     pure (Loop { a: acc + n, b: n - 1 })
 
-loop :: Int -> Eff (console :: CONSOLE) Unit
+loop :: Int -> Effect Unit
 loop n = tailRecM go n
   where
   go 0 = do
@@ -43,7 +42,7 @@ mutual = tailRec go <<< Left
   odd 0 = Done false
   odd n = Loop (Left (n - 1))
 
-main :: Eff (console :: CONSOLE) Unit
+main :: Effect Unit
 main = do
   _ <- triangle 10
   logShow $ mutual 1000001

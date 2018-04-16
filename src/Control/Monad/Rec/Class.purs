@@ -10,24 +10,19 @@ module Control.Monad.Rec.Class
 
 import Prelude
 
-import Control.Monad.Eff (Eff, untilE)
-import Control.Monad.Eff.Unsafe as U
-import Control.Monad.ST (ST, runST, newSTRef, readSTRef, writeSTRef)
-
-import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
-import Data.Identity (Identity(..))
 import Data.Bifunctor (class Bifunctor)
-
+import Data.Either (Either(..))
+import Data.Identity (Identity(..))
+import Data.Maybe (Maybe(..))
+import Effect (Effect, untilE)
+import Effect.Ref as Ref
 import Partial.Unsafe (unsafePartial)
 
 -- | The result of a computation: either `Loop` containing the updated
 -- | accumulator, or `Done` containing the final result of the computation.
 data Step a b = Loop a | Done b
 
-instance functorStep :: Functor (Step a) where
-  map f (Loop a) = Loop a
-  map f (Done b) = Done (f b)
+derive instance functorStep :: Functor (Step a)
 
 instance bifunctorStep :: Bifunctor Step where
   bimap f _ (Loop a) = Loop (f a)
@@ -100,8 +95,20 @@ instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
     where runIdentity (Identity x) = x
 
-instance monadRecEff :: MonadRec (Eff eff) where
-  tailRecM = tailRecEff
+instance monadRecEffect :: MonadRec Effect where
+  tailRecM f a = do
+    r <- Ref.new =<< f a
+    untilE do
+      Ref.read r >>= case _ of
+        Loop a' -> do
+          e <- f a'
+          _ <- Ref.write e r
+          pure false
+        Done b -> pure true
+    fromDone <$> Ref.read r
+    where
+    fromDone :: forall a b. Step a b -> b
+    fromDone = unsafePartial \(Done b) -> b
 
 instance monadRecFunction :: MonadRec ((->) e) where
   tailRecM f a0 e = tailRec (\a -> f a e) a0
@@ -121,24 +128,6 @@ instance monadRecMaybe :: MonadRec Maybe where
       g (Just (Loop a)) = Loop (f a)
       g (Just (Done b)) = Done (Just b)
     in tailRec g (f a0)
-
-tailRecEff :: forall a b eff. (a -> Eff eff (Step a b)) -> a -> Eff eff b
-tailRecEff f a = runST do
-  r <- newSTRef =<< f' a
-  untilE do
-    e <- readSTRef r
-    case e of
-      Loop a' -> do
-        e' <- f' a'
-        _ <- writeSTRef r e'
-        pure false
-      Done b -> pure true
-  fromDone <$> readSTRef r
-  where
-  f' :: forall h. a -> Eff (st :: ST h | eff) (Step a b)
-  f' = U.unsafeCoerceEff <<< f
-  fromDone :: Step a b -> b
-  fromDone = unsafePartial \(Done b) -> b
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.

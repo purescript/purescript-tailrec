@@ -39,15 +39,15 @@ instance bifunctorStep :: Bifunctor Step where
 -- | For example:
 -- |
 -- | ```purescript
--- | loopWriter :: Number -> WriterT Sum (Eff (trace :: Trace)) Unit
+-- | loopWriter :: Int -> WriterT (Additive Int) Effect Unit
 -- | loopWriter n = tailRecM go n
 -- |   where
 -- |   go 0 = do
--- |     lift $ trace "Done!"
+-- |     traceM "Done!"
 -- |     pure (Done unit)
--- |   go n = do
--- |     tell $ Sum n
--- |     pure (Loop (n - 1))
+-- |   go i = do
+-- |     tell $ Additive i
+-- |     pure (Loop (i - 1))
 -- | ```
 class Monad m <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Step a b)) -> a -> m b

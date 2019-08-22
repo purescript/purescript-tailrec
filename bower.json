@@ -26,10 +26,10 @@
     "purescript-maybe": "^4.0.0",
     "purescript-partial": "^2.0.0",
     "purescript-prelude": "^4.0.0",
-    "purescript-assert": "^4.1.0",
     "purescript-refs": "^4.0.0"
   },
   "devDependencies": {
+    "purescript-assert": "^4.1.0",
     "purescript-console": "^4.0.0"
   }
 }

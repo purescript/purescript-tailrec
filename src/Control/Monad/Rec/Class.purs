@@ -6,6 +6,8 @@ module Control.Monad.Rec.Class
   , tailRecM2
   , tailRecM3
   , forever
+  , whileJust
+  , untilJust
   ) where
 
 import Prelude
@@ -13,7 +15,7 @@ import Prelude
 import Data.Bifunctor (class Bifunctor)
 import Data.Either (Either(..))
 import Data.Identity (Identity(..))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Effect (Effect, untilE)
 import Effect.Ref as Ref
 import Partial.Unsafe (unsafePartial)
@@ -139,3 +141,14 @@ instance monadRecMaybe :: MonadRec Maybe where
 -- | ```
 forever :: forall m a b. MonadRec m => m a -> m b
 forever ma = tailRecM (\u -> Loop u <$ ma) unit
+
+
+-- | While supplied computation evaluates to `Just _`, it will be
+-- | executed repeatedly and results will be combined using monoid instance.
+whileJust :: forall a m. Monoid a => MonadRec m => m (Maybe a) -> m a
+whileJust m = tailRecM (\v -> m <#> maybe (Done v) (Loop <<< (v <> _))) mempty
+
+-- | Supplied computation will be executed repeatedly until it evaluates
+-- | to `Just value` and then that `value` will be returned.
+untilJust :: forall a m. MonadRec m => m (Maybe a) -> m a
+untilJust m = tailRecM (\_ -> m <#> maybe (Loop unit) Done) unit

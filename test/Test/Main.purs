@@ -2,10 +2,13 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Rec.Class (Step(..), tailRec, tailRecM, tailRecM2)
+import Control.Monad.Rec.Class (Step(..), tailRec, tailRecM, tailRecM2, untilJust, whileJust)
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Effect.Console (log, logShow)
+import Effect.Console (log)
+import Effect.Ref as Ref
+import Test.Assert (assertEqual')
 
 -- | Compute the nth triangle number
 triangle :: Int -> Effect Int
@@ -44,7 +47,35 @@ mutual = tailRec go <<< Left
 
 main :: Effect Unit
 main = do
-  _ <- triangle 10
-  logShow $ mutual 1000001
-  loop 1000000
-  logShow $ loopFunction 10000000 ({result:100, step:1})
+  test "triangle" 55 do
+    triangle 10
+  
+  test "mutual" false do
+    pure $ mutual 1000001
+
+  test "loop" unit do
+    loop 1000000
+
+  test "loopFunction" 100 do
+    pure $ loopFunction 10000000 ({result:100, step:1})
+  
+  test "whileJust" {acc: [1,2,3,4,5,6,7,8,9], res: 10} do
+    ref <- Ref.new 0
+    acc <- whileJust do
+      st <- Ref.modify (_ + 1) ref
+      pure $ if st < 10 then Just [st] else Nothing
+    res <- Ref.read ref
+    pure {res, acc}
+  
+  test "untilJust" 128 do
+    ref <- Ref.new 1
+    untilJust do
+      st <- Ref.modify (_ * 2) ref
+      pure $ if st > 89 then Just st else Nothing
+
+  where
+    test :: forall a. Show a => Eq a => String -> a -> Effect a -> Effect Unit
+    test name expected compute = do
+      log $ "START: " <> name
+      actual <- compute
+      assertEqual' "loopRes" {actual, expected}

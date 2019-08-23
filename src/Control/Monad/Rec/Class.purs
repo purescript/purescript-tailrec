@@ -142,7 +142,6 @@ instance monadRecMaybe :: MonadRec Maybe where
 forever :: forall m a b. MonadRec m => m a -> m b
 forever ma = tailRecM (\u -> Loop u <$ ma) unit
 
-
 -- | While supplied computation evaluates to `Just _`, it will be
 -- | executed repeatedly and results will be combined using monoid instance.
 whileJust :: forall a m. Monoid a => MonadRec m => m (Maybe a) -> m a

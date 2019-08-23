@@ -15,7 +15,7 @@ import Prelude
 import Data.Bifunctor (class Bifunctor)
 import Data.Either (Either(..))
 import Data.Identity (Identity(..))
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Effect (Effect, untilE)
 import Effect.Ref as Ref
 import Partial.Unsafe (unsafePartial)
@@ -146,9 +146,13 @@ forever ma = tailRecM (\u -> Loop u <$ ma) unit
 -- | While supplied computation evaluates to `Just _`, it will be
 -- | executed repeatedly and results will be combined using monoid instance.
 whileJust :: forall a m. Monoid a => MonadRec m => m (Maybe a) -> m a
-whileJust m = tailRecM (\v -> m <#> maybe (Done v) (Loop <<< (v <> _))) mempty
+whileJust m = mempty # tailRecM \v -> m <#> case _ of
+  Nothing -> Done v
+  Just x -> Loop $ v <> x
 
 -- | Supplied computation will be executed repeatedly until it evaluates
 -- | to `Just value` and then that `value` will be returned.
 untilJust :: forall a m. MonadRec m => m (Maybe a) -> m a
-untilJust m = tailRecM (\_ -> m <#> maybe (Loop unit) Done) unit
+untilJust m = unit # tailRecM \_ -> m <#> case _ of
+  Nothing -> Loop unit
+  Just x -> Done x

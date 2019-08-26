@@ -6,6 +6,8 @@ module Control.Monad.Rec.Class
   , tailRecM2
   , tailRecM3
   , forever
+  , whileJust
+  , untilJust
   ) where
 
 import Prelude
@@ -139,3 +141,17 @@ instance monadRecMaybe :: MonadRec Maybe where
 -- | ```
 forever :: forall m a b. MonadRec m => m a -> m b
 forever ma = tailRecM (\u -> Loop u <$ ma) unit
+
+-- | While supplied computation evaluates to `Just _`, it will be
+-- | executed repeatedly and results will be combined using monoid instance.
+whileJust :: forall a m. Monoid a => MonadRec m => m (Maybe a) -> m a
+whileJust m = mempty # tailRecM \v -> m <#> case _ of
+  Nothing -> Done v
+  Just x -> Loop $ v <> x
+
+-- | Supplied computation will be executed repeatedly until it evaluates
+-- | to `Just value` and then that `value` will be returned.
+untilJust :: forall a m. MonadRec m => m (Maybe a) -> m a
+untilJust m = unit # tailRecM \_ -> m <#> case _ of
+  Nothing -> Loop unit
+  Just x -> Done x

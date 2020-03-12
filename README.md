@@ -16,7 +16,7 @@ bower i purescript-tailrec
 The PureScript compiler performs tail-call elimination for self-recursive functions, so that a function like
 
 ```purescript
-pow :: Number -> Number -> Number
+pow :: Int -> Int -> Int
 pow n p = go { accum: 1, power: p }
   where
   go { accum: acc, power: 0 } = acc
@@ -28,7 +28,7 @@ gets compiled into an efficient `while` loop.
 However, we do not get the same benefit when using monadic recursion:
 
 ```purescript
-powWriter :: Number -> Number -> Writer Product Unit
+powWriter :: Int -> Int -> Writer Product Unit
 powWriter n = go
   where
   go 0 = return unit
@@ -40,10 +40,10 @@ powWriter n = go
 However, we can refactor the original function to isolate the recursive function call:
 
 ```purescript
-pow :: Number -> Number -> Number
+pow :: Int -> Int -> Int
 pow n p = tailRec go { accum: 1, power: p }
   where
-  go :: _ -> Step _ Number
+  go :: _ -> Step _ Int
   go { accum: acc, power: 0 } = Done acc
   go { accum: acc, power: p } = Loop { accum: acc * n, power: p - 1 }
 ```

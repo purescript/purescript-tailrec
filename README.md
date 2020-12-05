@@ -1,14 +1,14 @@
 # purescript-tailrec
 
 [![Latest release](http://img.shields.io/github/release/purescript/purescript-tailrec.svg)](https://github.com/purescript/purescript-tailrec/releases)
-[![Build status](https://travis-ci.org/purescript/purescript-tailrec.svg?branch=master)](https://travis-ci.org/purescript/purescript-tailrec)
+[![Build status](https://github.com/purescript/purescript-tailrec/workflows/CI/badge.svg?branch=master)](https://github.com/purescript/purescript-tailrec/actions?query=workflow%3ACI+branch%3Amaster)
 
 A type class which captures stack-safe monadic tail recursion.
 
 ## Installation
 
 ```
-bower i purescript-tailrec
+spago install tailrec
 ```
 
 ## Usage

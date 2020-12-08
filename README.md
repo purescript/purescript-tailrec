@@ -2,6 +2,7 @@
 
 [![Latest release](http://img.shields.io/github/release/purescript/purescript-tailrec.svg)](https://github.com/purescript/purescript-tailrec/releases)
 [![Build status](https://github.com/purescript/purescript-tailrec/workflows/CI/badge.svg?branch=master)](https://github.com/purescript/purescript-tailrec/actions?query=workflow%3ACI+branch%3Amaster)
+[![Pursuit](https://pursuit.purescript.org/packages/purescript-tailrec/badge)](https://pursuit.purescript.org/packages/purescript-tailrec)
 
 A type class which captures stack-safe monadic tail recursion.
 

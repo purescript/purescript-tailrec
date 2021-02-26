@@ -7,7 +7,7 @@
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "git://github.com/purescript/purescript-tailrec.git"
+    "url": "https://github.com/purescript/purescript-tailrec.git"
   },
   "ignore": [
     "**/.*",
@@ -19,17 +19,17 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-bifunctors": "master",
-    "purescript-effect": "master",
-    "purescript-either": "master",
-    "purescript-identity": "master",
-    "purescript-maybe": "master",
-    "purescript-partial": "master",
-    "purescript-prelude": "master",
-    "purescript-refs": "master"
+    "purescript-bifunctors": "^5.0.0",
+    "purescript-effect": "^3.0.0",
+    "purescript-either": "^5.0.0",
+    "purescript-identity": "^5.0.0",
+    "purescript-maybe": "^5.0.0",
+    "purescript-partial": "^3.0.0",
+    "purescript-prelude": "^5.0.0",
+    "purescript-refs": "^5.0.0"
   },
   "devDependencies": {
-    "purescript-assert": "master",
-    "purescript-console": "master"
+    "purescript-assert": "^5.0.0",
+    "purescript-console": "^5.0.0"
   }
 }

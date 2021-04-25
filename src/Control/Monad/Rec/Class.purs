@@ -106,7 +106,7 @@ instance monadRecEffect :: MonadRec Effect where
           e <- f a'
           _ <- Ref.write e r
           pure false
-        Done b -> pure true
+        Done _ -> pure true
     fromDone <$> Ref.read r
     where
     fromDone :: forall a b. Step a b -> b

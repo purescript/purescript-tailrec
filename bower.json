@@ -19,17 +19,17 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-bifunctors": "master",
-    "purescript-effect": "master",
-    "purescript-either": "master",
-    "purescript-identity": "master",
-    "purescript-maybe": "master",
-    "purescript-partial": "master",
-    "purescript-prelude": "master",
-    "purescript-refs": "master"
+    "purescript-bifunctors": "^6.0.0",
+    "purescript-effect": "^4.0.0",
+    "purescript-either": "^6.0.0",
+    "purescript-identity": "^6.0.0",
+    "purescript-maybe": "^6.0.0",
+    "purescript-partial": "^4.0.0",
+    "purescript-prelude": "^6.0.0",
+    "purescript-refs": "^6.0.0"
   },
   "devDependencies": {
-    "purescript-assert": "master",
-    "purescript-console": "master"
+    "purescript-assert": "^6.0.0",
+    "purescript-console": "^6.0.0"
   }
 }

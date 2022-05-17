@@ -7,6 +7,7 @@ Notable changes to this project are documented in this file. The format is based
 Breaking changes:
 
 New features:
+- Added `tailRec2`, `tailRec3`, `loop2`, `loop3` convenience functions (#40 by @rhendric)
 
 Bugfixes:
 

@@ -2,12 +2,16 @@ module Control.Monad.Rec.Class
   ( Step(..)
   , class MonadRec
   , tailRec
+  , tailRec2
+  , tailRec3
   , tailRecM
   , tailRecM2
   , tailRecM3
   , forever
   , whileJust
   , untilJust
+  , loop2
+  , loop3
   ) where
 
 import Prelude
@@ -55,6 +59,9 @@ class Monad m <= MonadRec m where
   tailRecM :: forall a b. (a -> m (Step a b)) -> a -> m b
 
 -- | Create a tail-recursive function of two arguments which uses constant stack space.
+-- |
+-- | The `loop2` helper function provides a curried alternative to the `Loop`
+-- | constructor for this function.
 tailRecM2
   :: forall m a b c
    . MonadRec m
@@ -65,6 +72,9 @@ tailRecM2
 tailRecM2 f a b = tailRecM (\o -> f o.a o.b) { a, b }
 
 -- | Create a tail-recursive function of three arguments which uses constant stack space.
+-- |
+-- | The `loop3` helper function provides a curried alternative to the `Loop`
+-- | constructor for this function.
 tailRecM3
   :: forall m a b c d
    . MonadRec m
@@ -92,6 +102,20 @@ tailRec f = go <<< f
   where
   go (Loop a) = go (f a)
   go (Done b) = b
+
+-- | Create a pure tail-recursive function of two arguments
+-- |
+-- | The `loop2` helper function provides a curried alternative to the `Loop`
+-- | constructor for this function.
+tailRec2 :: forall a b c. (a -> b -> Step { a :: a, b :: b } c) -> a -> b -> c
+tailRec2 f a b = tailRec (\o -> f o.a o.b) { a, b }
+
+-- | Create a pure tail-recursive function of three arguments
+-- |
+-- | The `loop3` helper function provides a curried alternative to the `Loop`
+-- | constructor for this function.
+tailRec3 :: forall a b c d. (a -> b -> c -> Step { a :: a, b :: b, c :: c } d) -> a -> b -> c -> d
+tailRec3 f a b c = tailRec (\o -> f o.a o.b o.c) { a, b, c }
 
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
@@ -155,3 +179,13 @@ untilJust :: forall a m. MonadRec m => m (Maybe a) -> m a
 untilJust m = unit # tailRecM \_ -> m <#> case _ of
   Nothing -> Loop unit
   Just x -> Done x
+
+-- | A curried version of the `Loop` constructor, provided as a convenience for
+-- | use with `tailRec2` and `tailRecM2`.
+loop2 :: forall a b c. a -> b -> Step { a :: a, b :: b } c
+loop2 a b = Loop { a, b }
+
+-- | A curried version of the `Loop` constructor, provided as a convenience for
+-- | use with `tailRec3` and `tailRecM3`.
+loop3 :: forall a b c d. a -> b -> c -> Step { a :: a, b :: b, c :: c } d
+loop3 a b c = Loop { a, b, c }

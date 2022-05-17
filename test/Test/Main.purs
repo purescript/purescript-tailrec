@@ -2,7 +2,7 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Rec.Class (Step(..), tailRec, tailRecM, tailRecM2, untilJust, whileJust)
+import Control.Monad.Rec.Class (Step(..), tailRec, tailRec2, tailRecM, tailRecM2, untilJust, whileJust, loop2)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -18,6 +18,12 @@ triangle = tailRecM2 f 0
   f acc n = do
     log $ "Accumulator: " <> show acc
     pure (Loop { a: acc + n, b: n - 1 })
+
+trianglePure :: Int -> Int
+trianglePure = tailRec2 f 0
+  where
+  f acc 0 = Done acc
+  f acc n = loop2 (acc + n) (n - 1)
 
 loop :: Int -> Effect Unit
 loop n = tailRecM go n
@@ -49,6 +55,9 @@ main :: Effect Unit
 main = do
   test "triangle" 55 do
     triangle 10
+
+  test "trianglePure" 55 do
+    pure $ trianglePure 10
   
   test "mutual" false do
     pure $ mutual 1000001

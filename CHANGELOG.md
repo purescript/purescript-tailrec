@@ -7,11 +7,15 @@ Notable changes to this project are documented in this file. The format is based
 Breaking changes:
 
 New features:
-- Added `tailRec2`, `tailRec3`, `loop2`, `loop3` convenience functions (#40 by @rhendric)
 
 Bugfixes:
 
 Other improvements:
+
+## [v6.1.0](https://github.com/purescript/purescript-tailrec/releases/tag/v6.1.0) - 2022-05-16
+
+New features:
+- Added `tailRec2`, `tailRec3`, `loop2`, `loop3` convenience functions (#40 by @rhendric)
 
 ## [v6.0.0](https://github.com/purescript/purescript-tailrec/releases/tag/v6.0.0) - 2022-04-27
 

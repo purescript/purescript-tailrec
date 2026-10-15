@@ -119,7 +119,8 @@ tailRec3 f a b c = tailRec (\o -> f o.a o.b o.c) { a, b, c }
 
 instance monadRecIdentity :: MonadRec Identity where
   tailRecM f = Identity <<< tailRec (runIdentity <<< f)
-    where runIdentity (Identity x) = x
+    where
+    runIdentity (Identity x) = x
 
 instance monadRecEffect :: MonadRec Effect where
   tailRecM f a = do
@@ -145,7 +146,8 @@ instance monadRecEither :: MonadRec (Either e) where
       g (Left e) = Done (Left e)
       g (Right (Loop a)) = Loop (f a)
       g (Right (Done b)) = Done (Right b)
-    in tailRec g (f a0)
+    in
+      tailRec g (f a0)
 
 instance monadRecMaybe :: MonadRec Maybe where
   tailRecM f a0 =
@@ -153,7 +155,8 @@ instance monadRecMaybe :: MonadRec Maybe where
       g Nothing = Done Nothing
       g (Just (Loop a)) = Loop (f a)
       g (Just (Done b)) = Done (Just b)
-    in tailRec g (f a0)
+    in
+      tailRec g (f a0)
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.

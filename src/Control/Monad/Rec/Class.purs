@@ -141,22 +141,22 @@ instance monadRecFunction :: MonadRec ((->) e) where
   tailRecM f a0 e = tailRec (\a -> f a e) a0
 
 instance monadRecEither :: MonadRec (Either e) where
-  tailRecM f a0 =
+  tailRecM f a0 = do
     let
-      g (Left e) = Done (Left e)
-      g (Right (Loop a)) = Loop (f a)
-      g (Right (Done b)) = Done (Right b)
-    in
-      tailRec g (f a0)
+      g step = case step of
+        Left e -> Done (Left e)
+        Right (Loop a) -> Loop (f a)
+        Right (Done b) -> Done (Right b)
+    tailRec g (f a0)
 
 instance monadRecMaybe :: MonadRec Maybe where
-  tailRecM f a0 =
+  tailRecM f a0 = do
     let
-      g Nothing = Done Nothing
-      g (Just (Loop a)) = Loop (f a)
-      g (Just (Done b)) = Done (Just b)
-    in
-      tailRec g (f a0)
+      g step = case step of
+        Nothing -> Done Nothing
+        Just (Loop a) -> Loop (f a)
+        Just (Done b) -> Done (Just b)
+    tailRec g (f a0)
 
 -- | `forever` runs an action indefinitely, using the `MonadRec` instance to
 -- | ensure constant stack usage.

@@ -2,7 +2,7 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Rec.Class (Step(..), tailRec, tailRec2, tailRecM, tailRecM2, untilJust, whileJust, loop2)
+import Control.Monad.Rec.Class (Step(..), loop2, tailRec, tailRec2, tailRecM, tailRecM2, untilJust, whileJust)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -33,7 +33,7 @@ loop n = tailRecM go n
     pure (Done unit)
   go n' = pure (Loop (n' - 1))
 
-loopFunction :: Int -> ({result :: Int, step :: Int} -> Int)
+loopFunction :: Int -> ({ result :: Int, step :: Int } -> Int)
 loopFunction = tailRecM go
   where
   go 0 = Done <$> \e -> e.result
@@ -58,7 +58,7 @@ main = do
 
   test "trianglePure" 55 do
     pure $ trianglePure 10
-  
+
   test "mutual" false do
     pure $ mutual 1000001
 
@@ -66,16 +66,16 @@ main = do
     loop 1000000
 
   test "loopFunction" 100 do
-    pure $ loopFunction 10000000 ({result:100, step:1})
-  
-  test "whileJust" {acc: [1,2,3,4,5,6,7,8,9], res: 10} do
+    pure $ loopFunction 10000000 ({ result: 100, step: 1 })
+
+  test "whileJust" { acc: [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ], res: 10 } do
     ref <- Ref.new 0
     acc <- whileJust do
       st <- Ref.modify (_ + 1) ref
-      pure $ if st < 10 then Just [st] else Nothing
+      pure $ if st < 10 then Just [ st ] else Nothing
     res <- Ref.read ref
-    pure {res, acc}
-  
+    pure { res, acc }
+
   test "untilJust" 128 do
     ref <- Ref.new 1
     untilJust do
@@ -83,8 +83,8 @@ main = do
       pure $ if st > 89 then Just st else Nothing
 
   where
-    test :: forall a. Show a => Eq a => String -> a -> Effect a -> Effect Unit
-    test name expected compute = do
-      log $ "START: " <> name
-      actual <- compute
-      assertEqual' "loopRes" {actual, expected}
+  test :: forall a. Show a => Eq a => String -> a -> Effect a -> Effect Unit
+  test name expected compute = do
+    log $ "START: " <> name
+    actual <- compute
+    assertEqual' "loopRes" { actual, expected }

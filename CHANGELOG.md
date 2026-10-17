@@ -2,7 +2,7 @@
 
 Notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased](https://github.com/purescript/purescript-tailrec/compare/v6.1.1...HEAD)
 
 Breaking changes:
 
@@ -12,14 +12,29 @@ Bugfixes:
 
 Other improvements:
 
+## [v6.1.1](https://github.com/purescript/purescript-tailrec/releases/tag/v6.1.1) - 2026-10-17
+
+Breaking changes:
+
+New features:
+
+Bugfixes:
+
+Other improvements:
+
+- Migrated from Bower/Pulp to Spago and updated CI and formatting tools. (#41 by @thomashoneyman)
+- Clarified the `Either` and `Maybe` tail recursion helpers without changing their behavior. (#41 by @thomashoneyman)
+
 ## [v6.1.0](https://github.com/purescript/purescript-tailrec/releases/tag/v6.1.0) - 2022-05-16
 
 New features:
+
 - Added `tailRec2`, `tailRec3`, `loop2`, `loop3` convenience functions (#40 by @rhendric)
 
 ## [v6.0.0](https://github.com/purescript/purescript-tailrec/releases/tag/v6.0.0) - 2022-04-27
 
 Breaking changes:
+
 - Update project and deps to PureScript v0.15.0 (#38 by @JordanMartinez)
 
 New features:
@@ -31,14 +46,17 @@ Other improvements:
 ## [v5.0.1](https://github.com/purescript/purescript-tailrec/releases/tag/v5.0.1) - 2021-04-27
 
 Other improvements:
+
 - Fix warnings revealed by v0.14.1 PS release (#37 by @JordanMartinez)
 
 ## [v5.0.0](https://github.com/purescript/purescript-tailrec/releases/tag/v5.0.0) - 2021-02-26
 
 Breaking changes:
+
 - Added support for PureScript 0.14 and dropped support for all previous versions (#32)
 
 Other improvements:
+
 - Migrated CI to GitHub Actions and updated installation instructions to use Spago (#33)
 - Added a changelog and pull request template (#34, #35)
 
